@@ -3,5 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 
 from users.models import User
 
+UserAdmin.fieldsets += (
+    ('Extra Fields', {'fields': ('role',)}),
+)
 
 admin.site.register(User, UserAdmin)
