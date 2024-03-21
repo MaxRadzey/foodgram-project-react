@@ -8,15 +8,21 @@ from recipes.constants import (COLOR_MAX_LENGTH, NAME_MAX_LENGTH,
 User = get_user_model()
 
 
-class Tags(models.Model):
+class Tag(models.Model):
 
     name = models.CharField(
         'Название тега',
         max_length=NAME_MAX_LENGTH,
+        unique=True,
+    )
+    color = models.CharField(
+        max_length=COLOR_MAX_LENGTH,
+        unique=True,
+    )
+    slug = models.SlugField(
+        'Слаг',
         unique=True
     )
-    color = models.CharField(max_length=COLOR_MAX_LENGTH)
-    slug = models.SlugField('Слаг', unique=True)
 
     class Meta:
         verbose_name = 'Тег'
@@ -27,16 +33,16 @@ class Tags(models.Model):
         return self.name[:SYMBOL_LIMIT]
 
 
-class Ingredients(models.Model):
+class Ingredient(models.Model):
 
     name = models.CharField(
         'Название ингредиента',
         max_length=NAME_MAX_LENGTH,
-        unique=True
+        unique=True,
     )
     unit = models.CharField(
         'Единицы измерения',
-        max_length=COLOR_MAX_LENGTH,
+        max_length=COLOR_MAX_LENGTH,  # Исправить
         choices=UNIT_CHOICES,
         default=GR,
     )
@@ -50,12 +56,13 @@ class Ingredients(models.Model):
         return self.name[:SYMBOL_LIMIT]
 
 
-class Recipes(models.Model):
+class Recipe(models.Model):
 
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор рецепта'
+        verbose_name='Автор рецепта',
+        related_name='author_recipes',
     )
     name = models.CharField(
         'Название рецепта',
@@ -67,16 +74,28 @@ class Recipes(models.Model):
         null=True,
         default=None
     )
-    text = models.TextField('Описание рецепта', blank=True)
-    ingredients = models.ManyToManyField(
-        Ingredients, verbose_name='Ингредиент'
+    text = models.TextField(
+        'Описание рецепта',
+        blank=True
     )
-    tag = models.ManyToManyField(Tags, verbose_name='Тег')
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        verbose_name='Ингредиент',
+        related_name='ingredients_recipes',
+        through='RecipeIngredientValue',
+    )
+    tag = models.ManyToManyField(
+        Tag,
+        verbose_name='Тег',
+        related_name='tag_recipes'
+    )  # Добавить релейтед нейм
     time = models.PositiveSmallIntegerField(
         'Время проготовления',
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True
+        'Дата публикации',
+        auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
@@ -88,39 +107,48 @@ class Recipes(models.Model):
         return self.name[:SYMBOL_LIMIT]
 
 
-class RecipesIngredientsValue(models.Model):
+class RecipeIngredientValue(models.Model):
 
-    recipes = models.ForeignKey(
-        Recipes,
-        on_delete=models.CASCADE,
-        verbose_name='Id рецепта'
-    )
     ingredients = models.ForeignKey(
-        Ingredients,
+        Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Id ингредиента'
+        verbose_name='Id ингредиента',
+        # related_name='recipes',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Id рецепта',
+        # related_name='ingredients',
     )
     value = models.PositiveSmallIntegerField(
         'Количество продукта',
     )
 
-    # class Meta:
-    #     verbose_name = 'Ингредиент'
-    #     verbose_name_plural = 'Ингредиенты'
+    class Meta:
+        verbose_name = 'Рецепты - ингридиенты'
+        verbose_name_plural = 'Рецепты - ингридиенты'
 
-    # def __str__(self):
-    #     return f'{self.value} {self.unit}'
+    def __str__(self):
+        return f'{self.ingredients} - {self.value}'
 
 
-# class RecipesTags(models.Model):
+class Favourites(models.Model):
 
-#     recipes = models.ForeignKey(
-#         Recipes,
-#         on_delete=models.CASCADE,
-#         verbose_name='Id рецепта'
-#     )
-#     tags = models.ForeignKey(
-#         Tags,
-#         on_delete=models.CASCADE,
-#         verbose_name='Id тега'
-#     )
+    user = models.ForeignKey(
+        User,
+        related_name='fav_recipes',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='fav_recipes',  # ???
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+
+    def __str__(self):
+        return f'Избранные рецепты {self.user}'
