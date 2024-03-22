@@ -13,7 +13,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'unit'
+        'name', 'measurement_unit'
     )
 
 
@@ -21,7 +21,7 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'author', 'name', 'image', 'text',
-        'time', 'pub_date'
+        'cooking_time', 'pub_date'
     )
 
     def display_ingredients(self, obj):
@@ -29,9 +29,9 @@ class RecipeAdmin(admin.ModelAdmin):
             [ingredients.name for ingredients in obj.ingredients.all()]
         )
 
-    def display_tag(self, obj):
+    def display_tags(self, obj):
         return ', '.join(
-            [tag.name for tag in obj.tag.all()]
+            [tag.name for tag in obj.tags.all()]
         )
 
 

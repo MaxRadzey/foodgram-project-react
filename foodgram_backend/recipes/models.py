@@ -40,7 +40,7 @@ class Ingredient(models.Model):
         max_length=NAME_MAX_LENGTH,
         unique=True,
     )
-    unit = models.CharField(
+    measurement_unit = models.CharField(
         'Единицы измерения',
         max_length=COLOR_MAX_LENGTH,  # Исправить
         choices=UNIT_CHOICES,
@@ -84,12 +84,12 @@ class Recipe(models.Model):
         related_name='ingredients_recipes',
         through='RecipeIngredientValue',
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         verbose_name='Тег',
         related_name='tag_recipes'
     )  # Добавить релейтед нейм
-    time = models.PositiveSmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         'Время проготовления',
     )
     pub_date = models.DateTimeField(
@@ -121,7 +121,7 @@ class RecipeIngredientValue(models.Model):
         verbose_name='Id рецепта',
         # related_name='ingredients',
     )
-    value = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         'Количество продукта',
     )
 
