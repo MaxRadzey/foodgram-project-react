@@ -35,8 +35,8 @@ class RecipeAdmin(admin.ModelAdmin):
         )
 
 
-@admin.register(RecipeIngredientValue)
-class RecipeIngredientValueAdmin(admin.ModelAdmin):
-    list_display = (
-        'recipe', 'ingredients', 'value'
-    )
+# @admin.register(RecipeIngredientValue)
+# class RecipeIngredientValueAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'recipe', 'ingredients', 'value'
+#     )
