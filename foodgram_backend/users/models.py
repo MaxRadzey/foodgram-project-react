@@ -1,4 +1,3 @@
-# from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -46,11 +45,11 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default=USER,
     )
-    following = models.ManyToManyField(
-        'self', verbose_name='Подписки',
-        related_name='followers',
-        symmetrical=False, blank=True,
-    )
+    # following = models.ManyToManyField(
+    #     'self', verbose_name='Подписки',
+    #     related_name='followers',
+    #     symmetrical=False, blank=True,
+    # )
 
     @property
     def is_admin(self):
@@ -66,3 +65,20 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserFollow(models.Model):
+
+    user_id = models.ForeignKey(
+        User,
+        related_name='following',
+        on_delete=models.CASCADE
+    )
+    following_user_id = models.ForeignKey(
+        User,
+        related_name='followers',
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        f'{self.user_id} follows {self.following_user_id}'
