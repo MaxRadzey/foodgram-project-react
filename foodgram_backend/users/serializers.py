@@ -92,55 +92,52 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous or user == obj:
             return False
-        return user.followers.filter(author=obj).exists()
+        return user.following.filter(following_user_id=obj).exists()
 
 
 class UserSubscriptionsSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок пользователя"""
 
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeForUserSerializer(many=True)
+    recipes = RecipeForUserSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'recipes', 'recipes_count'
+            'is_subscribed', 'recipes', 'recipes_count',
         )
-        read_only_fields = '__all__'
+        read_only_fields = '__all__',
 
     def get_recipes_count(self, obj):
         return obj.author_recipes.count()
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
-        if user.is_anonymos or user == obj:
-            return False
-        return user.followers.filter(author=obj).exists()
+        return True
 
 
 class ChangePasswordSerializers(serializers.ModelSerializer):
-    new_password = serializers.CharField(
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(
-                USER_MAX_LENGTH,
-                message='Длина пароля не должна превышать 150 символов.'
-            ),
-        ]
-    )
-    current_password = serializers.CharField(
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            MaxLengthValidator(
-                USER_MAX_LENGTH,
-                message='Длина пароля не должна превышать 150 символов.'
-            ),
-        ]
-    )
+    new_password = serializers.CharField(required=True,)
+    #     required=True,
+    #     validators=[
+    #         UniqueValidator(queryset=User.objects.all()),
+    #         MaxLengthValidator(
+    #             USER_MAX_LENGTH,
+    #             message='Длина пароля не должна превышать 150 символов.'
+    #         ),
+    #     ]
+    # )
+    current_password = serializers.CharField(required=True,)
+    #     required=True,
+    #     validators=[
+    #         UniqueValidator(queryset=User.objects.all()),
+    #         MaxLengthValidator(
+    #             USER_MAX_LENGTH,
+    #             message='Длина пароля не должна превышать 150 символов.'
+    #         ),
+    #     ]
+    # )
 
     class Meta:
         model = User

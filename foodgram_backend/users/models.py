@@ -45,11 +45,6 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default=USER,
     )
-    # following = models.ManyToManyField(
-    #     'self', verbose_name='Подписки',
-    #     related_name='followers',
-    #     symmetrical=False, blank=True,
-    # )
 
     @property
     def is_admin(self):
@@ -81,4 +76,4 @@ class UserFollow(models.Model):
     )
 
     def __str__(self):
-        f'{self.user_id} follows {self.following_user_id}'
+        f'{self.user_id} подписан на {self.following_user_id}'
