@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
@@ -16,11 +16,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
 
     @action(
         methods=('get',),
         detail=False,
-        serializer_class=UserSubscriptionsSerializer
+        serializer_class=UserSubscriptionsSerializer,
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def subscriptions(self, request):
         """Возвращает подписки. В выдачу добавляются рецепты."""
@@ -31,7 +33,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        serializer_class=UserSubscriptionsSerializer
+        serializer_class=UserSubscriptionsSerializer,
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def subscribe(self, request, pk=None):
         """Подписаться на пользователя или отписаться."""
@@ -75,7 +78,11 @@ class UserViewSet(viewsets.ModelViewSet):
         sub.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(methods=['get'], detail=False)
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
     def me(self, request):
         """Возвращает текущего пользователя."""
         serializer = self.get_serializer(request.user)
@@ -84,7 +91,8 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post'],
         detail=False,
-        serializer_class=ChangePasswordSerializers
+        serializer_class=ChangePasswordSerializers,
+        permission_classes=(permissions.IsAuthenticated,)
     )
     def set_password(self, request):
         """Изменение пароля текущего пользователя."""

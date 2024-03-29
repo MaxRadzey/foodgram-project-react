@@ -17,26 +17,19 @@ class IngredientAdmin(admin.ModelAdmin):
     )
 
 
+class RecipeIngredientValueAdmin(admin.TabularInline):
+    model = RecipeIngredientValue
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'author', 'name', 'image', 'text',
         'cooking_time', 'pub_date'
     )
-
-    def display_ingredients(self, obj):
-        return ', '.join(
-            [ingredients.name for ingredients in obj.ingredients.all()]
-        )
+    inlines = [RecipeIngredientValueAdmin]
 
     def display_tags(self, obj):
         return ', '.join(
             [tag.name for tag in obj.tags.all()]
         )
-
-
-# @admin.register(RecipeIngredientValue)
-# class RecipeIngredientValueAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'recipe', 'ingredients', 'value'
-#     )
