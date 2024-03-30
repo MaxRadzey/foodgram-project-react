@@ -1,10 +1,20 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
-from users.models import User
+from recipes.admin import FavouritesAdmin
+from users.models import User, UserFollow
 
-UserAdmin.fieldsets += (
-    ('Extra Fields', {'fields': ('role',)}),
-)
 
-admin.site.register(User, UserAdmin)
+class UserFollowAdmin(admin.TabularInline):
+    model = UserFollow
+    fk_name = 'user_id'
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'username', 'id', 'email', 'first_name',
+        'last_name'
+    )
+    list_filter = ('email', 'username')
+    search_fields = ('email', 'username')
+    inlines = (FavouritesAdmin, UserFollowAdmin)

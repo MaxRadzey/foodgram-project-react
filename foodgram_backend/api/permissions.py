@@ -20,3 +20,14 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_staff)
+
+
+class IsAdmin(permissions.BasePermission):
+    """Класс ограничения прав пользователя."""
+
+    def has_permission(self, request, view):
+        """Возвращает True, если пользователь - Админ"""
+        return (
+            request.user.is_authenticated
+            and request.user.is_admin
+        )

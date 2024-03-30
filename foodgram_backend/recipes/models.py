@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
-from recipes.constants import (COLOR_MAX_LENGTH, NAME_MAX_LENGTH,
-                               SYMBOL_LIMIT, UNIT_CHOICES, GR)
-
+from recipes.constants import (COLOR_MAX_LENGTH, GR, NAME_MAX_LENGTH,
+                               SYMBOL_LIMIT, UNIT_CHOICES)
 
 User = get_user_model()
 
@@ -74,7 +74,6 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='static/',
         null=True,
-        # blank=True,
         default=None
     )
     text = models.TextField(
@@ -94,11 +93,13 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время проготовления',
+        validators=[
+            MinValueValidator(0)
+        ]
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
-        # db_index=True
     )
 
     class Meta:
@@ -129,6 +130,9 @@ class RecipeIngredientValue(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество продукта',
         default=1,
+        validators=[
+            MinValueValidator(0)
+        ]
     )
 
     class Meta:
@@ -139,7 +143,7 @@ class RecipeIngredientValue(models.Model):
         return f'{self.ingredients} - {self.amount}'
 
 
-class Favourites(models.Model):
+class Favourite(models.Model):
     """Модель избранного."""
 
     user = models.ForeignKey(
@@ -156,6 +160,12 @@ class Favourites(models.Model):
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='recipe_has_already_been_in_fav'
+            ),
+        ]
 
     def __str__(self):
         return f'Избранные рецепты {self.user}'

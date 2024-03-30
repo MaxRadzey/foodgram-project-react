@@ -26,10 +26,10 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def subscriptions(self, request):
         """Возвращает подписки. В выдачу добавляются рецепты."""
-        user = request.user
-        users = User.objects.filter(followers__user_id=user)
+        users = User.objects.filter(followers__user_id=request.user)
+        users = self.paginate_queryset(users)
         serializer = self.get_serializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,

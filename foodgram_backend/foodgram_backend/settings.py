@@ -133,6 +133,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
+    'PAGE_SIZE': 6,
+
+    'EXCEPTION_HANDLER': 'api.utils.custom_exception_handler'
+
 }
 
 # Настройки DJOSER

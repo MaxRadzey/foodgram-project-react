@@ -1,6 +1,8 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+# from django.db.models import F, Q
 
 from users.constants import ADMIN, ROLE_CHOICES, ROLE_MAX_LENGTH, USER
 
@@ -75,5 +77,17 @@ class UserFollow(models.Model):
         on_delete=models.CASCADE
     )
 
-    def __str__(self):
-        f'{self.user_id} подписан на {self.following_user_id}'
+    class Meta:
+        verbose_name = 'Подписки'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user_id', 'following_user_id'],
+                name='subscription_has_already_been_issued'
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.user_id == self.following_user_id:
+            raise ValidationError('Нельзя подписываться на самого себя!')
+        return super().save(*args, **kwargs)
