@@ -10,3 +10,4 @@ pytest-pythonpath==0.7.3
 PyYAML==6.0
 python-dotenv
 gunicorn==20.1.0
+djoser==2.1.0

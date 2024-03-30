@@ -1,7 +1,8 @@
-# from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+# from django.db.models import F, Q
 
 from users.constants import ADMIN, ROLE_CHOICES, ROLE_MAX_LENGTH, USER
 
@@ -46,11 +47,6 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default=USER,
     )
-    following = models.ManyToManyField(
-        'self', verbose_name='Подписки',
-        related_name='followers',
-        symmetrical=False, blank=True,
-    )
 
     @property
     def is_admin(self):
@@ -66,3 +62,32 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserFollow(models.Model):
+
+    user_id = models.ForeignKey(
+        User,
+        related_name='following',
+        on_delete=models.CASCADE
+    )
+    following_user_id = models.ForeignKey(
+        User,
+        related_name='followers',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Подписки'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user_id', 'following_user_id'],
+                name='subscription_has_already_been_issued'
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.user_id == self.following_user_id:
+            raise ValidationError('Нельзя подписываться на самого себя!')
+        return super().save(*args, **kwargs)
