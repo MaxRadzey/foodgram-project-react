@@ -22,6 +22,32 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly
     )
 
+    def get_queryset(self):
+        queryset = self.queryset
+        tags = self.request.query_params.get('tags')
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        author = self.request.query_params.get('author')
+        if author:
+            queryset = queryset.filter(author=author)
+
+        if self.request.user.is_anonymous:
+            return queryset
+
+        is_favorited = self.request.query_params.get('is_favorited')
+        if is_favorited:
+            queryset = queryset.filter(is_favorited__user=self.request.user)
+
+        # is_in_shopping_cart = self.request.query_params.get(
+        #     'is_in_shopping_cart'
+        # )
+        # if is_in_shopping_cart:
+        #     queryset = queryset.filter(
+        #         is_in_shopping_cart__user=self.request.user
+        #     )
+        return queryset
+
     def get_serializer_class(self):
         """Получить сериализатор в зафисимости от метода запроса."""
         if self.action == 'list' or self.action == 'retrieve':
