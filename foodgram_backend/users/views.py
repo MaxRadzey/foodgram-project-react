@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
 from users.models import UserFollow
-from users.serializers import (ChangePasswordSerializers,
+from users.serializers import (ChangePasswordSerializers, UserCreateSerializer,
                                UserSerializer, UserSubscriptionsSerializer)
 
 User = get_user_model()
@@ -18,6 +18,11 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
 
+    def get_serializer_class(self):
+        if self.request.method.lower() == 'post':
+            return UserCreateSerializer
+        return UserSerializer
+
     @action(
         methods=('get',),
         detail=False,
@@ -28,12 +33,13 @@ class UserViewSet(viewsets.ModelViewSet):
         """Возвращает подписки. В выдачу добавляются рецепты."""
         users = User.objects.filter(followers__user_id=request.user)
         users = self.paginate_queryset(users)
-        serializer = self.get_serializer(users, many=True)
+        serializer = UserSubscriptionsSerializer(
+            users, many=True, context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
-        serializer_class=UserSubscriptionsSerializer,
         permission_classes=(permissions.IsAuthenticated,)
     )
     def subscribe(self, request, pk=None):
@@ -56,7 +62,9 @@ class UserViewSet(viewsets.ModelViewSet):
         UserFollow.objects.create(
             user_id=user, following_user_id=author
         )
-        serializer = self.get_serializer(author)
+        serializer = UserSubscriptionsSerializer(
+            author, context={'request': request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete

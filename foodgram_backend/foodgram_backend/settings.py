@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     'users',
     'api',
     'recipes',
+    'cart'
 ]
 
 MIDDLEWARE = [
@@ -117,8 +119,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -145,9 +151,10 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UserSerializer',
+        'user_create': 'users.serializers.UserCreateSerializer',
         'user': 'users.serializers.UserSerializer',
         'current_user': 'users.serializers.UserSerializer',
+        # 'token_create': 'users.serializers.CastomTokenCreateSerializer',
     },
     'PERMISSIONS': {
         'user': ('api.permissions.IsAdminOrReadOnly',),
@@ -155,11 +162,3 @@ DJOSER = {
     },
     'HIDE_USERS': False
 }
-
-# Email отправка писем в папку
-
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
-DEFAULT_FROM_EMAIL = 'get_token@api.ru'
-
-# Email отправка почтой

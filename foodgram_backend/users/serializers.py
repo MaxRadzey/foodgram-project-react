@@ -9,9 +9,9 @@ from users.constants import EMAIL_MAX_LENGTH, USER_MAX_LENGTH
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания пользователя."""
 
-    is_subscribed = serializers.SerializerMethodField()
     email = serializers.EmailField(
         required=True,
         validators=[
@@ -72,10 +72,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'email', 'id', 'username', 'first_name',
-            'last_name', 'is_subscribed', 'password'
+            'last_name', 'password',
         )
         extra_kwargs = {'password': {'write_only': True}}
-        read_only_fields = ('id', 'is_subscribed')
+        read_only_fields = 'id',
 
     def create(self, validated_data):
         user = User.objects.create(
@@ -88,6 +88,19 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+
+class UserSerializer(serializers.ModelSerializer):
+
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed'
+        )
+        read_only_fields = ('id', 'is_subscribed')
+
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous or user == obj:
@@ -99,7 +112,7 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок пользователя"""
 
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeForUserSerializer(many=True, read_only=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -109,6 +122,18 @@ class UserSubscriptionsSerializer(serializers.ModelSerializer):
             'is_subscribed', 'recipes', 'recipes_count',
         )
         read_only_fields = '__all__',
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.query_params.get('recipes_limit')
+        recipes = obj.author_recipes.all()
+        if limit:
+            recipes = recipes[:int(limit)]
+
+        return RecipeForUserSerializer(
+            recipes,
+            many=True,
+        ).data
 
     def get_recipes_count(self, obj):
         return obj.author_recipes.count()
