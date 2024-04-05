@@ -4,15 +4,16 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db.models import F
 from rest_framework import serializers
-from rest_framework.validators import ValidationError, UniqueTogetherValidator
+from rest_framework.validators import UniqueTogetherValidator, ValidationError
 
-from recipes.models import (Ingredient, Recipe, RecipeIngredientValue,
-                            Tag, Favourite)
+from recipes.models import (Favourite, Ingredient, Recipe,
+                            RecipeIngredientValue, Tag)
 
 User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -29,6 +30,15 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = 'id', 'name', 'measurement_unit'
+        read_only_fields = '__all__',
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тегов."""
+
+    class Meta:
+        model = Tag
+        fields = 'id', 'name', 'color', 'slug'
         read_only_fields = '__all__',
 
 
@@ -49,15 +59,6 @@ class Ingred(serializers.Serializer):
         return value
 
 
-class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для тегов."""
-
-    class Meta:
-        model = Tag
-        fields = 'id', 'name', 'color', 'slug'
-        read_only_fields = '__all__',
-
-
 class RecipeForUserSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов эндпоинта подписок."""
 
@@ -66,10 +67,10 @@ class RecipeForUserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'image', 'cooking_time'
         )
-        read_only_fields = '__all___',
+        read_only_fields = '__all__',
 
 
-class UserRecipeSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода автора-владельца рецепта."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -94,7 +95,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра списка рецептов или рецепта."""
 
     tags = TagSerializer(many=True)
-    author = UserRecipeSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -218,34 +219,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 )
         instance.save()
         return instance
-
-
-# Удалить сериализатор.
-# class UserSubscriptionsSerializer(serializers.ModelSerializer):
-#     """Сериализатор для подписок пользователя"""
-
-#     is_subscribed = serializers.SerializerMethodField()
-#     recipes = RecipeForUserSerializer(many=True)
-#     recipes_count = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'email', 'id', 'username', 'first_name', 'last_name',
-#             'is_subscribed', 'recipes', 'recipes_count'
-#         )
-#         read_only_fields = '__all__',
-
-#     def get_recipes_count(self, obj):
-#         """Получения поля количества рецептов пользователя."""
-#         return obj.author_recipes.count()
-
-#     def get_is_subscribed(self, obj):
-#         """Возвращает булевое значение - если ли подписка на пользователя."""
-#         user = self.context.get('request').user
-#         if user.is_anonymous or user == obj:
-#             return False
-#         return user.followers.filter(author=obj).exists()
 
 
 class FavouriteSerializer(serializers.ModelSerializer):

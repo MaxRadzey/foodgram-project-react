@@ -1,18 +1,16 @@
 from django.contrib.auth import get_user_model
-from rest_framework import (generics, viewsets, status,
-                            permissions)
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from django.http.response import HttpResponse
 
-from recipes.models import (Ingredient, Recipe, Tag,
-                            Favourite, RecipeIngredientValue)
-from cart.models import Cart
-from api.serializers import (IngredientSerializer, RecipeReadSerializer,
-                             RecipeWriteSerializer, TagSerializer,
-                             FavouriteSerializer)
 from api.permissions import IsOwnerOrReadOnly
+from api.serializers import (FavouriteSerializer, IngredientSerializer,
+                             RecipeReadSerializer, RecipeWriteSerializer,
+                             TagSerializer)
+from recipes.models import (Favourite, Ingredient, Recipe,
+                            RecipeIngredientValue, Tag)
 
 User = get_user_model()
 
@@ -171,7 +169,7 @@ class FavouritesViewSet(generics.CreateAPIView, generics.DestroyAPIView):
 
         if Favourite.objects.filter(recipe=recipe, user=user).exists():
             return Response(
-                {'message': 'Рецепт уже добавлен в избранное!'},
+                {'message': 'Рецепт уже добавлен!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

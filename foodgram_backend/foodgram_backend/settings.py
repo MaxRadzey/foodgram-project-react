@@ -152,9 +152,8 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
         'user_create': 'users.serializers.UserCreateSerializer',
-        'user': 'users.serializers.UserSerializer',
+        'user': 'api.serializers.UserSerializer',
         'current_user': 'users.serializers.UserSerializer',
-        # 'token_create': 'users.serializers.CastomTokenCreateSerializer',
     },
     'PERMISSIONS': {
         'user': ('api.permissions.IsAdminOrReadOnly',),

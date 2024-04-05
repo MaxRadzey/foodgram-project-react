@@ -1,13 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, permissions
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
 
+from api.serializers import UserSerializer
 from users.models import UserFollow
 from users.serializers import (ChangePasswordSerializers, UserCreateSerializer,
-                               UserSerializer, UserSubscriptionsSerializer)
+                               UserSubscriptionsSerializer)
 
 User = get_user_model()
 
@@ -19,7 +20,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
-        if self.request.method.lower() == 'post':
+        if self.request.method == 'POST':
             return UserCreateSerializer
         return UserSerializer
 

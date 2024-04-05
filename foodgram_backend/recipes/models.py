@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from recipes.constants import (COLOR_MAX_LENGTH, GR, NAME_MAX_LENGTH,
-                               SYMBOL_LIMIT, UNIT_CHOICES)
+                               SYMBOL_LIMIT, UNIT_CHOICES, UNIT_MAX_LENGTH)
 
 User = get_user_model()
 
@@ -44,7 +44,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         'Единицы измерения',
-        max_length=COLOR_MAX_LENGTH,  # Исправить
+        max_length=UNIT_MAX_LENGTH,
         choices=UNIT_CHOICES,
         default=GR,
     )
@@ -55,7 +55,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name[:SYMBOL_LIMIT]
+        return self.name
 
 
 class Recipe(models.Model):
@@ -157,7 +157,7 @@ class Favourite(models.Model):
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='fav_recipes',  # ???
+        related_name='fav_recipes',
         on_delete=models.CASCADE
     )
 
