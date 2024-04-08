@@ -3,7 +3,6 @@ from rest_framework import status
 
 
 def custom_exception_handler(exc, context):
-    pass
     response = exception_handler(exc, context)
 
     if response:

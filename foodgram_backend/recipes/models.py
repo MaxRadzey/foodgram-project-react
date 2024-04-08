@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from recipes.constants import (COLOR_MAX_LENGTH, GR, NAME_MAX_LENGTH,
-                               SYMBOL_LIMIT, UNIT_CHOICES)
+                               SYMBOL_LIMIT, UNIT_CHOICES, UNIT_MAX_LENGTH)
 
 User = get_user_model()
 
@@ -44,7 +44,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         'Единицы измерения',
-        max_length=COLOR_MAX_LENGTH,  # Исправить
+        max_length=UNIT_MAX_LENGTH,
         choices=UNIT_CHOICES,
         default=GR,
     )
@@ -55,7 +55,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name[:SYMBOL_LIMIT]
+        return self.name
 
 
 class Recipe(models.Model):
@@ -72,7 +72,7 @@ class Recipe(models.Model):
         max_length=NAME_MAX_LENGTH,
     )
     image = models.ImageField(
-        upload_to='static/',
+        upload_to='recipes/',
         null=True,
         default=None
     )
@@ -119,7 +119,6 @@ class RecipeIngredientValue(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Id ингредиента',
         related_name='recipe',
-        # null=True,
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -129,7 +128,6 @@ class RecipeIngredientValue(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество продукта',
-        default=1,
         validators=[
             MinValueValidator(0)
         ]
@@ -138,6 +136,12 @@ class RecipeIngredientValue(models.Model):
     class Meta:
         verbose_name = 'Рецепты - ингредиенты'
         verbose_name_plural = 'Рецепты - ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['amount', 'ingredients', 'recipe'],
+                name='not_uniq_amount'
+            ),
+        ]
 
     def __str__(self):
         return f'{self.ingredients} - {self.amount}'
@@ -153,7 +157,7 @@ class Favourite(models.Model):
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='fav_recipes',  # ???
+        related_name='fav_recipes',
         on_delete=models.CASCADE
     )
 
