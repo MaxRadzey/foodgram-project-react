@@ -1,5 +1,5 @@
 import csv
-import os
+# import os
 
 from django.core.management.base import BaseCommand
 
@@ -12,8 +12,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('Добавление базы данных!')
-        relative_path = "data"
-        # absolute_path = os.path.abspath(relative_path)  # Путь к папке с файлам
+        # relative_path = "data"
+        # absolute_path = os.path.abspath(relative_path)
         absolute_path = '/data'
 
         CSV_DATA_AND_MODELS = (
