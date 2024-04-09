@@ -1,13 +1,11 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from api.custom_404_page import custom404
 from api.views import (FavouritesViewSet, IngredientViewSet,
                        RecipeViewSet, TagViewSet)
 from cart.views import CartAPI
 from users.views import UserViewSet
 
-handler404 = custom404
 
 router_v1 = routers.DefaultRouter()
 router_v1.register('tags', TagViewSet, basename='tags')
