@@ -14,7 +14,7 @@ class Command(BaseCommand):
         self.stdout.write('Добавление базы данных!')
         # relative_path = "data"
         # absolute_path = os.path.abspath(relative_path)
-        absolute_path = '/data'
+        absolute_path = 'data'
 
         CSV_DATA_AND_MODELS = (
             ('ingredients.csv', Ingredient),
