@@ -51,7 +51,7 @@ class IngredientCreateSerializer(serializers.Serializer):
         queryset=Ingredient.objects.all(),
     )
     amount = serializers.IntegerField(
-        max_value=MIN_AMOUNT, min_value=MAX_AMOUNT
+        max_value=MAX_AMOUNT, min_value=MIN_AMOUNT
     )
 
 
