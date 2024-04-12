@@ -1,5 +1,4 @@
 import csv
-# import os
 
 from django.core.management.base import BaseCommand
 
@@ -12,21 +11,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('Добавление базы данных!')
-        # relative_path = "data"
-        # absolute_path = os.path.abspath(relative_path)
         absolute_path = 'data'
+        file_name = 'ingredients.csv'
 
-        CSV_DATA_AND_MODELS = (
-            ('ingredients.csv', Ingredient),
-        )
-
-        for file_name, models in CSV_DATA_AND_MODELS:
+        try:
             with open(
                 f'{absolute_path}/{file_name}', 'r', encoding='utf-8'
             ) as csvfile:
-                data = csv.DictReader(csvfile)
+                data = csv.DictReader(csvfile, ['name', 'measurement_unit'])
                 list_to_add_in_db = []
                 for row in data:
-                    list_to_add_in_db.append(models(**row))
-                models.objects.bulk_create(list_to_add_in_db)
-        self.stdout.write('База данных добавлена!')
+                    list_to_add_in_db.append(Ingredient(
+                        name=row['name'],
+                        measurement_unit=row['measurement_unit'],
+                    ))
+                Ingredient.objects.bulk_create(list_to_add_in_db)
+            self.stdout.write('База данных добавлена!')
+        except FileNotFoundError:
+            self.stdout.write(f'Файл {file_name} не найден!')

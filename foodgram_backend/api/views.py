@@ -68,10 +68,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Редактировать рецепт."""
         recipe_id = self.kwargs['pk']
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        if recipe.author != self.request.user:
-            return Response(
-                status=status.HTTP_403_FORBIDDEN
-            )
         serialazer = self.get_serializer(
             instance=recipe,
             data=request.data)
@@ -167,7 +163,7 @@ class FavouritesViewSet(generics.CreateAPIView, generics.DestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if Favourite.objects.filter(recipe=recipe, user=user).exists():
+        if user.fav_recipes.filter(recipe=recipe).exists():
             return Response(
                 {'message': 'Рецепт уже добавлен!'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -185,7 +181,7 @@ class FavouritesViewSet(generics.CreateAPIView, generics.DestroyAPIView):
         recipe_id = self.kwargs['pk']
         recipe = get_object_or_404(Recipe, pk=recipe_id)
         user = request.user
-        result = Favourite.objects.filter(recipe=recipe, user=user)
+        result = user.fav_recipes.filter(recipe=recipe)
         if not result:
             return Response(
                 {'message': 'Рецепта нет!'},

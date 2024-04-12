@@ -21,7 +21,7 @@ class CartAPI(APIView):
                 {'message': 'Такого рецепта нет!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if Cart.objects.filter(recipe=recipe, user=user).exists():
+        if user.cart.filter(recipe=recipe).exists():
             return Response(
                 {'message': 'Рецепт уже добавлен!'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -37,7 +37,7 @@ class CartAPI(APIView):
         recipe_id = self.kwargs['pk']
         recipe = Recipe.objects.filter(pk=recipe_id).first()
         user = request.user
-        result = Cart.objects.filter(recipe=recipe, user=user)
+        result = user.cart.filter(recipe=recipe)
         if not recipe:
             return Response(
                 {'message': 'Такого рецепта нет!'},

@@ -6,8 +6,10 @@ from django.db.models import F
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, ValidationError
 
-from recipes.models import (Favourite, Ingredient, Recipe,
-                            RecipeIngredientValue, Tag)
+from api.utils import create_relation_ingredient_and_value
+from recipes.constants import (MAX_AMOUNT, MAX_COOKING_TIME,
+                               MIN_AMOUNT, MIN_COOKING_TIME)
+from recipes.models import Favourite, Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -42,21 +44,15 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = '__all__',
 
 
-class Ingred(serializers.Serializer):
+class IngredientCreateSerializer(serializers.Serializer):
     """Сериализатор для ингредиентов при создании рецепта."""
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
     )
-    amount = serializers.IntegerField()
-
-    def validate_amount(self, value):
-        """Валидация количества ингредиента."""
-        if value <= 0:
-            raise ValidationError(
-                'Отсутствует ингредиент!'
-            )
-        return value
+    amount = serializers.IntegerField(
+        max_value=MIN_AMOUNT, min_value=MAX_AMOUNT
+    )
 
 
 class RecipeForUserSerializer(serializers.ModelSerializer):
@@ -85,7 +81,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         """Возвращает булевое значение - если ли подписка на пользователя."""
-        user = self.context.get('request').user
+        user = self.context['request'].user
+        # user = self.context.get('request').user
         if user.is_anonymous or user == obj:
             return False
         return user.following.filter(following_user_id=obj).exists()
@@ -120,14 +117,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         """Получение поля в избранном ли товар."""
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return user.fav_recipes.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """Получение поля в корзине ли товар."""
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return user.cart.filter(recipe=obj).exists()
@@ -140,7 +137,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all())
     image = Base64ImageField()
-    ingredients = Ingred(many=True,)
+    ingredients = IngredientCreateSerializer(many=True,)
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_COOKING_TIME, max_value=MAX_COOKING_TIME
+    )
 
     class Meta:
         model = Recipe
@@ -160,10 +160,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients = self.initial_data.get('ingredients')
         if not tags or not ingredients:
             raise ValidationError('Отсутствуют обязательные поля!')
-        validate_ingredients = []
-        for ingredient in ingredients:
-            if ingredient not in validate_ingredients:
-                validate_ingredients.append(ingredient)
+        validate_ingredients = set(ingredients)
         if len(ingredients) != len(validate_ingredients):
             raise ValidationError(
                 'Нельзя указывать одинаковые ингредиенты!'
@@ -178,27 +175,17 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
         return super().validate(attrs)
 
-    def validate_cooking_time(self, value):
-        """Валидация времени приготовления."""
-        if value < 1:
-            raise ValidationError(
-                'Время готовки не может быть меньше минуты!'
-            )
-        return value
-
     def create(self, validated_data):
-        """Функция слздания рецепта."""
+        """Функция создания рецепта."""
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
 
-        for ingredient in ingredients:
-            RecipeIngredientValue.objects.create(
-                ingredients=ingredient.get('id'),
-                recipe=recipe,
-                amount=ingredient.get('amount')
-            )
+        create_relation_ingredient_and_value(
+            ingredients_list=ingredients,
+            recipe=recipe
+        )
         return recipe
 
     def update(self, instance, validated_data):
@@ -210,13 +197,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance.text = validated_data.get('text')
         instance.cooking_time = validated_data.get('cooking_time')
         if ingredients:
-            instance.ingredients.clear()
-            for ingredient in ingredients:
-                RecipeIngredientValue.objects.create(
-                    ingredients=ingredient.get('id'),
-                    recipe=instance,
-                    amount=ingredient.get('amount')
-                )
+            create_relation_ingredient_and_value(
+                ingredients_list=ingredients,
+                recipe=instance
+            )
         instance.save()
         return instance
 
