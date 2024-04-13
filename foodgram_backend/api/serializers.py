@@ -20,9 +20,7 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
-
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
         return super().to_internal_value(data)
 
 
@@ -82,7 +80,6 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Возвращает булевое значение - если ли подписка на пользователя."""
         user = self.context['request'].user
-        # user = self.context.get('request').user
         if user.is_anonymous or user == obj:
             return False
         return user.following.filter(following_user_id=obj).exists()
@@ -160,8 +157,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients = self.initial_data.get('ingredients')
         if not tags or not ingredients:
             raise ValidationError('Отсутствуют обязательные поля!')
-        validate_ingredients = set(ingredients)
-        if len(ingredients) != len(validate_ingredients):
+        ingredients = [
+            ingredient['id'] for ingredient in ingredients
+        ]
+        if len(ingredients) != len(set(ingredients)):
             raise ValidationError(
                 'Нельзя указывать одинаковые ингредиенты!'
             )
@@ -197,6 +196,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance.text = validated_data.get('text')
         instance.cooking_time = validated_data.get('cooking_time')
         if ingredients:
+            instance.ingredients.clear()
             create_relation_ingredient_and_value(
                 ingredients_list=ingredients,
                 recipe=instance

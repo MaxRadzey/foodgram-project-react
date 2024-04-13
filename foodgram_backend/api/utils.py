@@ -15,7 +15,7 @@ def custom_exception_handler(exc, context):
 
 
 def create_relation_ingredient_and_value(ingredients_list, recipe):
-    """Добавляет рецепту ингредиенты и значения."""
+    """Добавляет рецепту ингредиенты и их значения."""
     list_to_add = []
     for ingredient in ingredients_list:
         list_to_add.append(RecipeIngredientValue(

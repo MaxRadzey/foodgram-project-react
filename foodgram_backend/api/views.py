@@ -21,7 +21,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeWriteSerializer
     permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly,
+        IsOwnerOrReadOnly,
     )
 
     def get_queryset(self):
@@ -68,6 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Редактировать рецепт."""
         recipe_id = self.kwargs['pk']
         recipe = get_object_or_404(Recipe, pk=recipe_id)
+        self.check_object_permissions(request, recipe)
         serialazer = self.get_serializer(
             instance=recipe,
             data=request.data)

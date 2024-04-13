@@ -146,8 +146,8 @@ class RecipeIngredientValue(models.Model):
         ordering = ('recipe',)
         constraints = [
             models.UniqueConstraint(
-                fields=['amount', 'ingredients', 'recipe'],
-                name='not_uniq_amount'
+                fields=['ingredients', 'recipe'],
+                name='not_uniq_ingredient_in_recipe'
             ),
         ]
 
