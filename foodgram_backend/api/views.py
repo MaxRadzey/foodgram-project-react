@@ -157,12 +157,12 @@ class FavouritesViewSet(generics.CreateAPIView, generics.DestroyAPIView):
         """Добавить рецепт в избранное."""
         recipe_id = self.kwargs['pk']
         recipe = Recipe.objects.filter(pk=recipe_id).first()
-        user = request.user
         if not recipe:
             return Response(
                 {'message': 'Такого рецепта нет!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        user = request.user
 
         if user.fav_recipes.filter(recipe=recipe).exists():
             return Response(
@@ -181,8 +181,7 @@ class FavouritesViewSet(generics.CreateAPIView, generics.DestroyAPIView):
         """Удалить рецепт из избранного."""
         recipe_id = self.kwargs['pk']
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        user = request.user
-        result = user.fav_recipes.filter(recipe=recipe)
+        result = request.user.fav_recipes.filter(recipe=recipe)
         if not result:
             return Response(
                 {'message': 'Рецепта нет!'},

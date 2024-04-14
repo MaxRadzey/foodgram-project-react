@@ -15,12 +15,12 @@ class CartAPI(APIView):
     def post(self, request, **kwargs):
         recipe_id = self.kwargs['pk']
         recipe = Recipe.objects.filter(pk=recipe_id).first()
-        user = request.user
         if not recipe:
             return Response(
                 {'message': 'Такого рецепта нет!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        user = request.user
         if user.cart.filter(recipe=recipe).exists():
             return Response(
                 {'message': 'Рецепт уже добавлен!'},
@@ -36,13 +36,13 @@ class CartAPI(APIView):
     def delete(self, request, **kwargs):
         recipe_id = self.kwargs['pk']
         recipe = Recipe.objects.filter(pk=recipe_id).first()
-        user = request.user
-        result = user.cart.filter(recipe=recipe)
         if not recipe:
             return Response(
                 {'message': 'Такого рецепта нет!'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        user = request.user
+        result = user.cart.filter(recipe=recipe)
         if result.exists():
             result.delete()
             return Response(
