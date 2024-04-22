@@ -1,7 +1,3 @@
-https://maxmaxrr.ru
-admin
-admin
-
 # Проект «Foodgram»
 
 ## Содержание
